@@ -37,7 +37,7 @@ public class Engine extends PApplet {
         double ratio = image.height/image.width;
         for(int i=0; i<output.length; i++) {
             double angle = Math.random()*2*Math.PI;
-            double range = (Math.pow(Math.cos(angle), 2) + ratio*Math.pow(Math.sin(angle), 2))*(image.width/(GRID_SIZE*2));
+            double range = ((Math.pow(Math.cos(angle), 2) + ratio*Math.pow(Math.sin(angle), 2)))*(image.width/(GRID_SIZE*2));
             double magnitude = Math.random()*range;
             output[i] = new Point((int)(magnitude*Math.cos(angle)), (int)(magnitude*Math.sin(angle)));
         }
