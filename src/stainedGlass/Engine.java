@@ -21,20 +21,15 @@ public class Engine extends PApplet {
     public void setup() {
         //PImage transformed = transform(input);
         background(input);
-        Point[] points = getPoints(input);
-        for(int i=0; i<points.length; i++)
-        {
-            System.out.println(points[i]);
-        }
     }
 
     public void draw() {
 
     }
 
-//    public PImage transform(PImage image) {
-//
-//    }
+    public PImage transform(PImage image) {
+
+    }
 
     public Point[] getPoints(PImage image) {
         final int GRID_SIZE = 10;
