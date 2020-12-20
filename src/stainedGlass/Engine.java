@@ -77,9 +77,9 @@ public class Engine extends PApplet {
         System.out.println("Done.");
     }
 
-//    public PImage transform(PImage image) {
-//
-//    }
+    public PImage transform(PImage image) {
+        PImage newImage;
+    }
 
     public Point[] getPoints(PImage image) {
         Point[] output = new Point[GRID_SIZE*GRID_SIZE];
@@ -117,32 +117,12 @@ public class Engine extends PApplet {
                 edgePoints.add(basePoints.get(i));
         }
         ArrayList<Point> points = new ArrayList<Point>(basePoints);
-        points = reducePoints(image, points, 10);
+        points = reducePoints(image, points);
         points.addAll(edgePoints);
         return points;
     }
 
-    private ArrayList<Point> reducePoints(PImage image, ArrayList<Point> points, int iteration) {
-//        if(iteration<=0)
-//            return points;
-//        ArrayList<Point> midpoints = new ArrayList<Point>();
-//        for(int i=0; i<points.size(); i++) {
-//            Point[] near = nearPoints(points.get(i), points, 4);
-//            for (Point point : near) {
-//                if (isDifferent(image, points.get(i), point)) {
-//                    Point mid = midpoint(points.get(i), point);
-//                    if (!midpoints.contains(mid))
-//                        midpoints.add(mid);
-//                } else {
-//                    Point central = central(image, points.get(i), point);
-//                    if (!midpoints.contains(central))
-//                        midpoints.add(central);
-//                }
-//            }
-//        }
-//        return reducePoints(image, midpoints, iteration-1);
-
-
+    private ArrayList<Point> reducePoints(PImage image, ArrayList<Point> points) {
         ArrayList<Point> output = new ArrayList<Point>();
         for(int i=0; i<points.size(); i++) {
             Point[] near = nearPoints(points.get(i), points, 2);
@@ -247,35 +227,29 @@ public class Engine extends PApplet {
     }
 
     public boolean triangleContainsPoint(Point p, Point[] vertices) {
+        float[] circumcenter = getCircumcenter(vertices);
+        float radius = dist(circumcenter[0], circumcenter[1], vertices[0].x, vertices[0].y);
+        float distFromCircumcenter = dist(circumcenter[0], circumcenter[1], p.x, p.y);
 
-//        //Area of original triangle
-//        float areaOrig = triangleArea(vertices[0], vertices[1], vertices[2]);
-//
-//        //Area of three new triangles
-//        float areaNew1 = triangleArea(p, vertices[0], vertices[1]);
-//        float areaNew2 = triangleArea(p, vertices[0], vertices[2]);
-//        float areaNew3 = triangleArea(p, vertices[1], vertices[2]);
-//        float sumNewAreas = areaNew1 + areaNew2 + areaNew3;
-//
-//        if(abs(areaOrig-sumNewAreas) < 0.01)
-//            return true;
-//
-//        return false;
-
-        Point v1 = getVector(p, vertices[0]);
-        Point v2 = getVector(p, vertices[1]);
-        Point v3 = getVector(p, vertices[2]);
-
-        float a1 = (float)Math.acos(((float)dot(v1, v2)) / (dist(0,0,v1.x,v1.y)*dist(0,0,v2.x,v2.y)));
-        float a2 = (float)Math.acos(((float)dot(v1, v3)) / (dist(0,0,v1.x,v1.y)*dist(0,0,v3.x,v3.y)));
-        float a3 = (float)Math.acos(((float)dot(v3, v2)) / (dist(0,0,v3.x,v3.y)*dist(0,0,v2.x,v2.y)));
-        float sumAngle = a1 + a2 + a3;
-
-        if(Math.abs(sumAngle - (2*Math.PI)) < 1) {
-            return true;
-        }
-        return false;
+        return(distFromCircumcenter < radius);
     }
+
+    public float[] getCircumcenter(Point[] vertices) {
+
+        float a = dist(vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y);
+        float b = dist(vertices[0].x, vertices[0].y, vertices[2].x, vertices[2].y);
+        float c = dist(vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y);
+
+        float angleA = acos( (b*b + c*c - a*a) / (2*b*c) );
+        float angleB = acos( (a*a + c*c - b*b) / (2*a*c) );
+        float angleC = 2*PI - angleA - angleB;
+
+        float circumcenterX = (vertices[0].x*sin(2*angleA) + vertices[1].x*sin(2*angleB) + vertices[2].x*sin(2*angleC)) / (sin(2*angleA) + sin(2*angleB) + sin(2*angleC));
+        float circumcenterY = (vertices[0].y*sin(2*angleA) + vertices[1].y*sin(2*angleB) + vertices[2].y*sin(2*angleC)) / (sin(2*angleA) + sin(2*angleB) + sin(2*angleC));
+
+        return new float[]{circumcenterX, circumcenterY};
+    }
+
 
     public float triangleArea(Point p1, Point p2, Point p3) {
         float a, b, c, s;
@@ -292,5 +266,9 @@ public class Engine extends PApplet {
 
     public int dot(Point v1, Point v2) {
         return (v1.x*v2.x) + (v1.y*v2.y);
+    }
+
+    public float dist(Point p1, Point p2) {
+        return dist(p1.x, p1.y, p2.x, p2.y);
     }
 }
