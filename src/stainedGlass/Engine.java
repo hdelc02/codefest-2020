@@ -5,6 +5,7 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,9 +19,33 @@ public class Engine extends PApplet {
         PApplet.main("stainedGlass.Engine");
     }
 
+    Boolean fileLoaded = false;
     public void settings() {
-        input = loadImage("swag cat.jpg");
+        //input = loadImage("swag cat.jpg");
+        try {
+            fileSelector();
+        }
+        catch (InterruptedException ex) {
+            ;
+        }
+        System.out.println("Progress");
         size(input.width, input.height);
+    }
+
+    public void fileSelector() throws InterruptedException {
+        synchronized(fileLoaded) {
+            selectInput("Select an image:", "fileSelection");
+            fileLoaded.wait();
+        }
+    }
+
+    public void fileSelection(File selected) {
+        synchronized(fileLoaded) {
+            input = loadImage(selected.getAbsolutePath());
+            fileLoaded.notify();
+            System.out.println("image loaded");
+            fileLoaded = true;
+        }
     }
 
     public void setup() {
@@ -38,9 +63,6 @@ public class Engine extends PApplet {
         }
         fill(color(0,255,0));
         ArrayList<Point> contourPoints = contourPoints(input);
-//        for(Point point : contourPoints) {
-//            circle(point.x, point.y, 3);
-//        }
         ArrayList<Point[]> triangles = triangulation(contourPoints);
         stroke(0);
         noFill();
