@@ -226,18 +226,32 @@ public class Engine extends PApplet {
 
     public boolean triangleContainsPoint(Point p, Point[] vertices) {
 
-        //Area of original triangle
-        float areaOrig = triangleArea(vertices[0], vertices[1], vertices[2]);
+//        //Area of original triangle
+//        float areaOrig = triangleArea(vertices[0], vertices[1], vertices[2]);
+//
+//        //Area of three new triangles
+//        float areaNew1 = triangleArea(p, vertices[0], vertices[1]);
+//        float areaNew2 = triangleArea(p, vertices[0], vertices[2]);
+//        float areaNew3 = triangleArea(p, vertices[1], vertices[2]);
+//        float sumNewAreas = areaNew1 + areaNew2 + areaNew3;
+//
+//        if(abs(areaOrig-sumNewAreas) < 0.01)
+//            return true;
+//
+//        return false;
 
-        //Area of three new triangles
-        float areaNew1 = triangleArea(p, vertices[0], vertices[1]);
-        float areaNew2 = triangleArea(p, vertices[0], vertices[2]);
-        float areaNew3 = triangleArea(p, vertices[1], vertices[2]);
-        float sumNewAreas = areaNew1 + areaNew2 + areaNew3;
+        Point v1 = getVector(p, vertices[0]);
+        Point v2 = getVector(p, vertices[1]);
+        Point v3 = getVector(p, vertices[2]);
 
-        if(abs(areaOrig-sumNewAreas) < 0.01)
+        float a1 = (float)Math.acos(((float)dot(v1, v2)) / (dist(0,0,v1.x,v1.y)*dist(0,0,v2.x,v2.y)));
+        float a2 = (float)Math.acos(((float)dot(v1, v3)) / (dist(0,0,v1.x,v1.y)*dist(0,0,v3.x,v3.y)));
+        float a3 = (float)Math.acos(((float)dot(v3, v2)) / (dist(0,0,v3.x,v3.y)*dist(0,0,v2.x,v2.y)));
+        float sumAngle = a1 + a2 + a3;
+
+        if(Math.abs(sumAngle - (2*Math.PI)) < 1) {
             return true;
-
+        }
         return false;
     }
 
@@ -248,5 +262,13 @@ public class Engine extends PApplet {
         c = dist(p2.x, p2.y, p3.x, p3.y);
         s = (a+b+c)/2;
         return sqrt(s * (s-a) * (s-b) * (s-c));
+    }
+
+    public Point getVector(Point p1, Point p2) {
+        return new Point(p2.x-p1.x, p2.y-p1.y);
+    }
+
+    public int dot(Point v1, Point v2) {
+        return (v1.x*v2.x) + (v1.y*v2.y);
     }
 }
