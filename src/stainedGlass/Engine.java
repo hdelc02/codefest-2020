@@ -9,11 +9,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 
 public class Engine extends PApplet {
 
     PImage input;
-    final int GRID_SIZE = 10;
+    final int GRID_SIZE = 12;
 
     public static void main(String[] args) {
         PApplet.main("stainedGlass.Engine");
@@ -26,7 +27,7 @@ public class Engine extends PApplet {
             fileSelector();
         }
         catch (InterruptedException ex) {
-            ;
+            ex.printStackTrace();
         }
         System.out.println("Progress");
         size(input.width, input.height);
@@ -77,9 +78,15 @@ public class Engine extends PApplet {
         System.out.println("Done.");
     }
 
-    public PImage transform(PImage image) {
-        PImage newImage;
-    }
+//    public PImage transform(PImage image) {
+//        PImage newImage = new PImage(image.width, image.height);
+//        HashMap<Point[], Integer[]> triangleFill = new HashMap<Point[], Integer[]>();
+//        ArrayList<Point> contourPoints = contourPoints(input);
+//        ArrayList<Point[]> triangles = triangulation(contourPoints);
+//        for(Point[] triangle : triangles) {
+//
+//        }
+//    }
 
     public Point[] getPoints(PImage image) {
         Point[] output = new Point[GRID_SIZE*GRID_SIZE];
@@ -163,7 +170,7 @@ public class Engine extends PApplet {
     }
 
     public boolean isDifferent(PImage image, Point p1, Point p2) {
-        final int SUM_THRESHOLD = 250;
+        final int SUM_THRESHOLD = 200;
         image.loadPixels();
         int c1 = image.pixels[((p1.y*image.width)+p1.x)];
         int c2 = image.pixels[((p2.y*image.width)+p2.x)];
@@ -227,11 +234,43 @@ public class Engine extends PApplet {
     }
 
     public boolean triangleContainsPoint(Point p, Point[] vertices) {
-        float[] circumcenter = getCircumcenter(vertices);
-        float radius = dist(circumcenter[0], circumcenter[1], vertices[0].x, vertices[0].y);
-        float distFromCircumcenter = dist(circumcenter[0], circumcenter[1], p.x, p.y);
+//        float[] circumcenter = getCircumcenter(vertices);
+//        float radius = dist(circumcenter[0], circumcenter[1], vertices[0].x, vertices[0].y);
+//        float distFromCircumcenter = dist(circumcenter[0], circumcenter[1], p.x, p.y);
+//
+//        return(distFromCircumcenter < radius);
 
-        return(distFromCircumcenter < radius);
+        setTriangleCCW(vertices);
+        int[][] mat = new int[3][3];
+        for(int i=0; i<3; i++) {
+            mat[i][0] = vertices[i].x - p.x;
+            mat[i][1] = vertices[i].y - p.y;
+            mat[i][2] = (int)(Math.pow(vertices[i].x - p.x, 2) + Math.pow(vertices[i].y - p.y, 2));
+        }
+        return det3x3(mat) > 0;
+    }
+
+    public void swap(Point[] points, int a, int b) {
+        Point temp = points[a];
+        points[a] = points[b];
+        points[b] = temp;
+    }
+
+    public void setTriangleCCW(Point[] vertices) {
+        int[][] mat = new int[3][3];
+        for(int i=0; i<3; i++) {
+            mat[i][0] = vertices[i].x;
+            mat[i][1] = vertices[i].y;
+            mat[i][2] = 1;
+        }
+        if(det3x3(mat) < 0)
+            swap(vertices, 0, 1);
+    }
+
+    public int det3x3(int[][] mat) {
+        return (mat[0][0]*(mat[1][1]*mat[2][2] - mat[1][2]*mat[2][1]))
+                +(mat[0][1]*(mat[1][2]*mat[2][0] - mat[1][0]*mat[2][2]))
+                +(mat[0][2]*(mat[1][0]*mat[2][1] - mat[1][1]*mat[2][0]));
     }
 
     public float[] getCircumcenter(Point[] vertices) {
@@ -271,4 +310,6 @@ public class Engine extends PApplet {
     public float dist(Point p1, Point p2) {
         return dist(p1.x, p1.y, p2.x, p2.y);
     }
+
+
 }
