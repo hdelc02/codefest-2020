@@ -1,0 +1,51 @@
+public ArrayList<Point[]> triangulation(ArrayList<Point> points){
+		ArrayList<Point[]> triangles = new ArrayList<Point[]>();
+		for(int i = 0; i < points.size(); i++) {
+			for(int j = i+1; j < points.size(); j ++) {
+				for(int k = j+1; k < points.size(); k ++) {
+					boolean successfulTriangle = true;
+					Point[] currentTriangle = {points.get(i), points.get(j), points.get(k)};
+					for(int l = 0; l < points.size(); l ++) {
+						if(i == l || j == l || k == l)
+							continue;
+						if(triangleContainsPoint(points.get(l), currentTriangle)) {
+							successfulTriangle = false;
+							break;
+						}
+					}
+					if(successfulTriangle) {
+						triangles.add(currentTriangle);
+					}
+				}
+			}
+		}
+		
+		return triangles;
+	}
+	
+	
+	public boolean triangleContainsPoint(Point p, Point[] vertices) {
+	
+		float[] circumcenter = getCircumcenter(vertices);
+		float radius = dist(circumcenter[0], circumcenter[1], vertices[0].x, vertices[0].y);
+		float distFromCircumcenter = dist(circumcenter[0], circumcenter[1], p.x, p.y);
+		
+		return(distFromCircumcenter < radius);
+	}
+	
+	
+	public float[] getCircumcenter(Point[] vertices) {
+		
+		float a = dist(vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y);
+		float b = dist(vertices[0].x, vertices[0].y, vertices[2].x, vertices[2].y);
+		float c = dist(vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y);
+		
+		float angleA = acos( (b*b + c*c - a*a) / (2*b*c) );
+		float angleB = acos( (a*a + c*c - b*b) / (2*a*c) );
+		float angleC = 2*PI - angleA - angleB;
+		
+		float circumcenterX = (vertices[0].x*sin(2*angleA) + vertices[1].x*sin(2*angleB) + vertices[2].x*sin(2*angleC)) / (sin(2*angleA) + sin(2*angleB) + sin(2*angleC));
+		float circumcenterY = (vertices[0].y*sin(2*angleA) + vertices[1].y*sin(2*angleB) + vertices[2].y*sin(2*angleC)) / (sin(2*angleA) + sin(2*angleB) + sin(2*angleC));
+		
+		return new float[]{circumcenterX, circumcenterY};
+	}
