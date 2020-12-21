@@ -1,15 +1,11 @@
-package stainedGlass;
 
-import com.sun.xml.internal.bind.v2.runtime.output.StAXExStreamWriterOutput;
 import processing.core.PApplet;
 import processing.core.PImage;
 
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 
 public class Engine extends PApplet {
 
@@ -17,7 +13,7 @@ public class Engine extends PApplet {
     final int GRID_SIZE = 20;
 
     public static void main(String[] args) {
-        PApplet.main("stainedGlass.Engine");
+        PApplet.main("Engine");
     }
 
     Boolean fileLoaded = false;
@@ -54,11 +50,11 @@ public class Engine extends PApplet {
     ArrayList<Triangle2D> triangles;
 
     public void setup() {
-        background(IMAGE);
+        background(input);
         loadPixels();
         noLoop();
 
-        points = contourPoints(IMAGE);
+        points = contourPoints(input);
         vectors = convertPointListToVector2DList(points);
         triangulator = new DelaunayTriangulator(vectors);
         try {
@@ -74,6 +70,7 @@ public class Engine extends PApplet {
     }
 
     public void draw() {
+    	background(100);
         strokeWeight(0);
 
         for(int i=0; i<triangles.size(); i++) {
@@ -99,9 +96,9 @@ public class Engine extends PApplet {
 
 
     public void setTriangleFill(Triangle2D t) {
-        int a =	IMAGE.get((int)t.a.x, (int)t.a.y);
-        int b = IMAGE.get((int)t.b.x, (int)t.b.y);
-        int c = IMAGE.get((int)t.c.x, (int)t.c.y);
+        int a =	input.get((int)t.a.x, (int)t.a.y);
+        int b = input.get((int)t.b.x, (int)t.b.y);
+        int c = input.get((int)t.c.x, (int)t.c.y);
 
         float avgRed = (red(a) + red(b) + red(c))/3;
         float avgGreen = (green(a) + green(b) + green(c))/3;
@@ -154,7 +151,7 @@ public class Engine extends PApplet {
     private ArrayList<Point> reducePoints(PImage image, ArrayList<Point> points) {
         ArrayList<Point> output = new ArrayList<Point>();
         for(int i=0; i<points.size(); i++) {
-            Point[] near = nearPoints(points.get(i), points, 2);
+            Point[] near = nearPoints(points.get(i), points, 3);
             for (Point point : near) {
                 if(isDifferent(image, point, points.get(i))) {
                     Point poi = deltaPoint(image, point, points.get(i));
