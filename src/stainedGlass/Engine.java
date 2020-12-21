@@ -230,43 +230,4 @@ public class Engine extends PApplet {
         return output;
     }
 
-    public void setTriangleCCW(Point[] vertices) {
-        int[][] mat = new int[3][3];
-        for(int i=0; i<3; i++) {
-            mat[i][0] = vertices[i].x;
-            mat[i][1] = vertices[i].y;
-            mat[i][2] = 1;
-        }
-        if(det3x3(mat) < 0)
-            swap(vertices, 0, 1);
-    }
-
-    public int det3x3(int[][] mat) {
-        return (mat[0][0]*(mat[1][1]*mat[2][2] - mat[1][2]*mat[2][1]))
-                +(mat[0][1]*(mat[1][2]*mat[2][0] - mat[1][0]*mat[2][2]))
-                +(mat[0][2]*(mat[1][0]*mat[2][1] - mat[1][1]*mat[2][0]));
-    }
-
-    public float triangleArea(Point p1, Point p2, Point p3) {
-        float a, b, c, s;
-        a = dist(p1.x, p1.y, p2.x, p2.y);
-        b = dist(p1.x, p1.y, p3.x, p3.y);
-        c = dist(p2.x, p2.y, p3.x, p3.y);
-        s = (a+b+c)/2;
-        return sqrt(s * (s-a) * (s-b) * (s-c));
-    }
-
-    public Point getVector(Point p1, Point p2) {
-        return new Point(p2.x-p1.x, p2.y-p1.y);
-    }
-
-    public int dot(Point v1, Point v2) {
-        return (v1.x*v2.x) + (v1.y*v2.y);
-    }
-
-    public float dist(Point p1, Point p2) {
-        return dist(p1.x, p1.y, p2.x, p2.y);
-    }
-
-
 }
