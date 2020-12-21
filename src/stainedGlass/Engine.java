@@ -14,7 +14,7 @@ import java.util.HashMap;
 public class Engine extends PApplet {
 
     PImage input;
-    final int GRID_SIZE = 12;
+    final int GRID_SIZE = 20;
 
     public static void main(String[] args) {
         PApplet.main("stainedGlass.Engine");
@@ -22,7 +22,6 @@ public class Engine extends PApplet {
 
     Boolean fileLoaded = false;
     public void settings() {
-        //input = loadImage("swag cat.jpg");
         try {
             fileSelector();
         }
@@ -49,44 +48,67 @@ public class Engine extends PApplet {
         }
     }
 
+    ArrayList<Point> points;
+    ArrayList<Vector2D> vectors;
+    DelaunayTriangulator triangulator;
+    ArrayList<Triangle2D> triangles;
+
     public void setup() {
-        //PImage transformed = transform(input);
-        background(input);
+        background(IMAGE);
+        loadPixels();
         noLoop();
+
+        points = contourPoints(IMAGE);
+        vectors = convertPointListToVector2DList(points);
+        triangulator = new DelaunayTriangulator(vectors);
+        try {
+            triangulator.triangulate();
+        } catch (NotEnoughPointsException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(triangulator.getTriangles().size());
+        triangles = (ArrayList<Triangle2D>) triangulator.getTriangles();
+
+        delay(1000);
     }
 
     public void draw() {
-        noStroke();
-        fill(color(255,0,0));
-        Point[] points = getPoints(input);
-        for(Point point : points) {
-            circle(point.x, point.y, 3);
+        strokeWeight(0);
+
+        for(int i=0; i<triangles.size(); i++) {
+            drawTriangle(triangles.get(i));
         }
-        fill(color(0,255,0));
-        ArrayList<Point> contourPoints = contourPoints(input);
-        ArrayList<Point[]> triangles = triangulation(contourPoints);
-        stroke(0);
-        noFill();
-        for(Point[] triangle : triangles) {
-            triangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y);
-        }
-        noStroke();
-        fill(0,255,0);
-        for(Point point : contourPoints) {
-            circle(point.x, point.y, 3);
-        }
-        System.out.println("Done.");
+
+        System.out.println(triangles.size());
     }
 
-//    public PImage transform(PImage image) {
-//        PImage newImage = new PImage(image.width, image.height);
-//        HashMap<Point[], Integer[]> triangleFill = new HashMap<Point[], Integer[]>();
-//        ArrayList<Point> contourPoints = contourPoints(input);
-//        ArrayList<Point[]> triangles = triangulation(contourPoints);
-//        for(Point[] triangle : triangles) {
-//
-//        }
-//    }
+    public ArrayList<Vector2D> convertPointListToVector2DList(ArrayList<Point> points){
+        ArrayList<Vector2D> vectors = new ArrayList<Vector2D>();
+        for(int i=0; i<points.size(); i++) {
+            vectors.add(new Vector2D(points.get(i).x, points.get(i).y));
+        }
+        return vectors;
+    }
+
+
+    public void drawTriangle(Triangle2D t) {
+        setTriangleFill(t);
+        triangle((float)t.a.x, (float)t.a.y, (float)t.b.x, (float)t.b.y, (float)t.c.x, (float)t.c.y);
+    }
+
+
+    public void setTriangleFill(Triangle2D t) {
+        int a =	IMAGE.get((int)t.a.x, (int)t.a.y);
+        int b = IMAGE.get((int)t.b.x, (int)t.b.y);
+        int c = IMAGE.get((int)t.c.x, (int)t.c.y);
+
+        float avgRed = (red(a) + red(b) + red(c))/3;
+        float avgGreen = (green(a) + green(b) + green(c))/3;
+        float avgBlue = (blue(a) + blue(b) + blue(c))/3;
+
+        fill(avgRed, avgGreen, avgBlue);
+    }
 
     public Point[] getPoints(PImage image) {
         Point[] output = new Point[GRID_SIZE*GRID_SIZE];
@@ -170,7 +192,7 @@ public class Engine extends PApplet {
     }
 
     public boolean isDifferent(PImage image, Point p1, Point p2) {
-        final int SUM_THRESHOLD = 200;
+        final int SUM_THRESHOLD = 150;
         image.loadPixels();
         int c1 = image.pixels[((p1.y*image.width)+p1.x)];
         int c2 = image.pixels[((p2.y*image.width)+p2.x)];
@@ -208,54 +230,6 @@ public class Engine extends PApplet {
         return output;
     }
 
-    public ArrayList<Point[]> triangulation(ArrayList<Point> points){
-        ArrayList<Point[]> triangles = new ArrayList<Point[]>();
-        for(int i = 0; i < points.size(); i++) {
-            for(int j = i+1; j < points.size(); j ++) {
-                for(int k = j+1; k < points.size(); k ++) {
-                    boolean successfulTriangle = true;
-                    Point[] currentTriangle = {points.get(i), points.get(j), points.get(k)};
-                    for(int l = 0; l < points.size(); l ++) {
-                        if(i == l || j == l || k == l)
-                            continue;
-                        if(triangleContainsPoint(points.get(l), currentTriangle)) {
-                            successfulTriangle = false;
-                            break;
-                        }
-                    }
-                    if(successfulTriangle) {
-                        triangles.add(currentTriangle);
-                    }
-                }
-            }
-        }
-
-        return triangles;
-    }
-
-    public boolean triangleContainsPoint(Point p, Point[] vertices) {
-//        float[] circumcenter = getCircumcenter(vertices);
-//        float radius = dist(circumcenter[0], circumcenter[1], vertices[0].x, vertices[0].y);
-//        float distFromCircumcenter = dist(circumcenter[0], circumcenter[1], p.x, p.y);
-//
-//        return(distFromCircumcenter < radius);
-
-        setTriangleCCW(vertices);
-        int[][] mat = new int[3][3];
-        for(int i=0; i<3; i++) {
-            mat[i][0] = vertices[i].x - p.x;
-            mat[i][1] = vertices[i].y - p.y;
-            mat[i][2] = (int)(Math.pow(vertices[i].x - p.x, 2) + Math.pow(vertices[i].y - p.y, 2));
-        }
-        return det3x3(mat) > 0;
-    }
-
-    public void swap(Point[] points, int a, int b) {
-        Point temp = points[a];
-        points[a] = points[b];
-        points[b] = temp;
-    }
-
     public void setTriangleCCW(Point[] vertices) {
         int[][] mat = new int[3][3];
         for(int i=0; i<3; i++) {
@@ -272,23 +246,6 @@ public class Engine extends PApplet {
                 +(mat[0][1]*(mat[1][2]*mat[2][0] - mat[1][0]*mat[2][2]))
                 +(mat[0][2]*(mat[1][0]*mat[2][1] - mat[1][1]*mat[2][0]));
     }
-
-    public float[] getCircumcenter(Point[] vertices) {
-
-        float a = dist(vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y);
-        float b = dist(vertices[0].x, vertices[0].y, vertices[2].x, vertices[2].y);
-        float c = dist(vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y);
-
-        float angleA = acos( (b*b + c*c - a*a) / (2*b*c) );
-        float angleB = acos( (a*a + c*c - b*b) / (2*a*c) );
-        float angleC = 2*PI - angleA - angleB;
-
-        float circumcenterX = (vertices[0].x*sin(2*angleA) + vertices[1].x*sin(2*angleB) + vertices[2].x*sin(2*angleC)) / (sin(2*angleA) + sin(2*angleB) + sin(2*angleC));
-        float circumcenterY = (vertices[0].y*sin(2*angleA) + vertices[1].y*sin(2*angleB) + vertices[2].y*sin(2*angleC)) / (sin(2*angleA) + sin(2*angleB) + sin(2*angleC));
-
-        return new float[]{circumcenterX, circumcenterY};
-    }
-
 
     public float triangleArea(Point p1, Point p2, Point p3) {
         float a, b, c, s;
